@@ -3,8 +3,5 @@
 # Board specific MAVLink startup script.
 #------------------------------------------------------------------------------
 
-# Start ADS-B receiver mavlink connection if console not present
-if [ ! -e /dev/console ]
-then
-	mavlink start -d /dev/ttyS4 -b 57600 -m minimal
-fi
+# Production hardening: do not auto-start board-specific extra MAVLink link.
+# If needed for maintenance, start it manually.
