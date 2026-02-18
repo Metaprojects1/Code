@@ -64,8 +64,27 @@ target_link_libraries(px4_kernel_layer
 )
 
 if (DEFINED PX4_CRYPTO)
-	target_link_libraries(px4_kernel_layer PUBLIC crypto_backend)
-	target_link_libraries(px4_layer PUBLIC crypto_backend_interface)
+	target_include_directories(px4_kernel_layer
+		PRIVATE
+			${PX4_SOURCE_DIR}/src/drivers/sw_crypto
+			${PX4_SOURCE_DIR}/src/drivers/stub_keystore
+	)
+
+	target_include_directories(px4_layer
+		PRIVATE
+			${PX4_SOURCE_DIR}/src/drivers/sw_crypto
+			${PX4_SOURCE_DIR}/src/drivers/stub_keystore
+	)
+
+	if (TARGET crypto_backend)
+		target_link_libraries(px4_kernel_layer PUBLIC crypto_backend)
+	endif()
+
+	if (TARGET crypto_backend_interface)
+		target_link_libraries(px4_layer PUBLIC crypto_backend_interface)
+	elseif (TARGET crypto_backend)
+		target_link_libraries(px4_layer PUBLIC crypto_backend)
+	endif()
 endif()
 
 add_dependencies(px4_kernel_layer prebuild_targets)

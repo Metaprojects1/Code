@@ -34,6 +34,10 @@ if("${PX4_BOARD_LABEL}" STREQUAL  "bootloader")
 	add_library(drivers_board
 		bootloader_main.c
 		usb.c
+		secure_boot.c
+		secure_boot_integration.c
+		secure_boot_audit.c
+		stm32h7_crypto.c
 	)
 	target_link_libraries(drivers_board
 		PRIVATE
@@ -41,7 +45,19 @@ if("${PX4_BOARD_LABEL}" STREQUAL  "bootloader")
 			nuttx_drivers
 			bootloader
 	)
-	target_include_directories(drivers_board PRIVATE ${PX4_SOURCE_DIR}/platforms/nuttx/src/bootloader/common)
+
+	if (DEFINED PX4_CRYPTO)
+		target_link_libraries(drivers_board
+			PRIVATE
+				libtomcrypt
+		)
+	endif()
+
+	target_include_directories(drivers_board PRIVATE
+		${PX4_SOURCE_DIR}/platforms/nuttx/src/bootloader/common
+		${PX4_SOURCE_DIR}/src/drivers/sw_crypto
+		${PX4_SOURCE_DIR}/src/drivers/stub_keystore
+	)
 
 else()
 	add_library(drivers_board

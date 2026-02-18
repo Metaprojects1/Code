@@ -41,7 +41,18 @@ extern "C" {
 #include <stdint.h>
 #include <sys/ioctl.h>
 #include <px4_platform_common/crypto_algorithms.h>
+
+#if defined(__has_include)
+#if __has_include("crypto_backend_definitions.h")
 #include "crypto_backend_definitions.h"
+#elif __has_include(<drivers/sw_crypto/crypto_backend_definitions.h>)
+#include <drivers/sw_crypto/crypto_backend_definitions.h>
+#else
+#error "crypto_backend_definitions.h not found"
+#endif
+#else
+#include "crypto_backend_definitions.h"
+#endif
 
 /*
  * Keystore access functions

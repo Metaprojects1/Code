@@ -16,10 +16,18 @@ target_link_libraries(px4_layer
 
 
 if (DEFINED PX4_CRYPTO)
-	target_link_libraries(px4_layer
-		PUBLIC
-			crypto_backend
+	target_include_directories(px4_layer
+		PRIVATE
+			${PX4_SOURCE_DIR}/src/drivers/sw_crypto
+			${PX4_SOURCE_DIR}/src/drivers/stub_keystore
 	)
+
+	if (TARGET crypto_backend)
+		target_link_libraries(px4_layer
+			PUBLIC
+				crypto_backend
+		)
+	endif()
 endif()
 
 target_link_libraries(px4_layer PRIVATE px4_platform)
