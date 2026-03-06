@@ -48,6 +48,10 @@
 #include "arm_internal.h"
 #include <px4_platform_common/init.h>
 
+/* Secure boot integration */
+#include "secure_boot.h"
+#include "secure_boot_integration.h"
+
 extern int sercon_main(int c, char **argv);
 
 __EXPORT void board_on_reset(int status) {}
@@ -60,6 +64,39 @@ __EXPORT void stm32_boardinitialize(void)
 
 __EXPORT int board_app_initialize(uintptr_t arg)
 {
+	/* Initialize secure boot system */
+	secure_boot_bootloader_init();
+	
+	/* Verify application firmware before booting */
+	if (!secure_boot_verify_application()) {
+		/* Firmware verification failed - log error and halt */
+		secure_boot_result_t error = secure_boot_get_last_error();
+		
+#ifdef DEBUG
+		/* Output error for debugging (if UART available) */
+		printf("SECURITY: Firmware verification failed (error: %u)\n", (unsigned)error);
+		printf("SECURITY: %s\n", secure_boot_strerror(error));
+		
+		/* Flash LED pattern indicating secure boot failure */
+		for (int i = 0; i < 5; i++) {
+			led_on(LED_BOOTLOADER);
+			delay(100);
+			led_off(LED_BOOTLOADER);
+			delay(100);
+		}
+#endif
+		
+		/* Call failure handler (typically halts system) */
+		secure_boot_failure_handler(error);
+		
+		/* Never reached */
+		return -1;
+	}
+	
+#ifdef DEBUG
+	printf("SECURITY: Firmware verification successful - booting application\n");
+#endif
+
 	return 0;
 }
 

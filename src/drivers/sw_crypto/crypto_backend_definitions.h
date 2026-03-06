@@ -34,7 +34,18 @@
 #pragma once
 
 #include <stdbool.h>
+
+#if defined(__has_include)
+#if __has_include(<keystore_backend_definitions.h>)
 #include <keystore_backend_definitions.h>
+#elif __has_include(<drivers/stub_keystore/keystore_backend_definitions.h>)
+#include <drivers/stub_keystore/keystore_backend_definitions.h>
+#else
+#error "keystore_backend_definitions.h not found"
+#endif
+#else
+#include <keystore_backend_definitions.h>
+#endif
 
 typedef struct {
 	int handle;

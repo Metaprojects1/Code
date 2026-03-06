@@ -47,10 +47,18 @@ target_link_libraries(bootloader
 )
 
 if (DEFINED PX4_CRYPTO)
-	target_link_libraries(bootloader
+	target_include_directories(bootloader
 		PRIVATE
-			crypto_backend
+			${PX4_SOURCE_DIR}/src/drivers/sw_crypto
+			${PX4_SOURCE_DIR}/src/drivers/stub_keystore
 	)
+
+	if (TARGET crypto_backend)
+		target_link_libraries(bootloader
+			PRIVATE
+				crypto_backend
+		)
+	endif()
 endif()
 
 add_dependencies(bootloader prebuild_targets)
