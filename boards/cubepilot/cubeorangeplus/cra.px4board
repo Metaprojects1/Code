@@ -1,6 +1,7 @@
 # CRA product variant for the CubeOrange+.
 #
-# This initial variant intentionally inherits the complete default.px4board
-# configuration without disabling any driver, module, command, or interface.
-# Security controls will be introduced incrementally after the Step 2 hardware
-# and communication interfaces have been frozen and verified.
+# This variant retains the board ADC used for POWER1 battery and system-power
+# monitoring. CAN and the external ADS1115 driver are disabled here; I2C2 is
+# disabled in the CubeOrange+ NuttX configuration.
+CONFIG_DRIVERS_ADC_ADS1115=n
+CONFIG_DRIVERS_UAVCAN=n
