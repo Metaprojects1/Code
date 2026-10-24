@@ -140,6 +140,9 @@ protected:
 		param_t v_empty;
 		param_t v_charged;
 		param_t n_cells;
+		param_t v_empty_legacy;
+		param_t v_charged_legacy;
+		param_t n_cells_legacy;
 		param_t capacity;
 		param_t r_internal;
 		param_t low_thr;
@@ -163,9 +166,70 @@ protected:
 		float i_overwrite;
 	} _params{};
 
+	template<typename T>
+	void syncDeprecatedParameter(param_t legacy_param, param_t indexed_param, T &previous_legacy_value,
+				     T &previous_indexed_value)
+	{
+		if (legacy_param == PARAM_INVALID || indexed_param == PARAM_INVALID) {
+			return;
+		}
+
+		T legacy_value{};
+		T indexed_value{};
+		param_get(legacy_param, &legacy_value);
+		param_get(indexed_param, &indexed_value);
+		const bool legacy_was_default = param_value_is_default(legacy_param);
+
+		const auto values_equal = [](T first, T second) {
+			return matrix::isEqualF(static_cast<float>(first), static_cast<float>(second));
+		};
+
+		if (!_legacy_parameter_sync_initialized) {
+			// Migrate a configured legacy value only when the indexed parameter is still at its default.
+			if (!legacy_was_default && param_value_is_default(indexed_param)) {
+				param_set_no_notification(indexed_param, &legacy_value);
+				indexed_value = legacy_value;
+			}
+
+		} else {
+			const bool legacy_changed = !values_equal(legacy_value, previous_legacy_value);
+			const bool indexed_changed = !values_equal(indexed_value, previous_indexed_value);
+
+			if (legacy_changed && !indexed_changed) {
+				param_set_no_notification(indexed_param, &legacy_value);
+				indexed_value = legacy_value;
+			}
+		}
+
+		// Make the legacy name a live view of BAT1_* so it never persists a stale copy
+		// that could override a later airframe default after reboot.
+		T legacy_default_value{};
+
+		if (param_get_default_value(legacy_param, &legacy_default_value) == PX4_OK
+		    && !values_equal(legacy_default_value, indexed_value)) {
+			param_set_default_value(legacy_param, &indexed_value);
+		}
+
+		if (!legacy_was_default || !param_value_is_default(legacy_param)) {
+			param_reset_no_notification(legacy_param);
+		}
+
+		param_get(legacy_param, &legacy_value);
+
+		previous_legacy_value = legacy_value;
+		previous_indexed_value = indexed_value;
+	}
+
 	const int _index;
 
 	bool _first_parameter_update{true};
+	bool _legacy_parameter_sync_initialized{false};
+	float _previous_v_empty_legacy{};
+	float _previous_v_empty_indexed{};
+	float _previous_v_charged_legacy{};
+	float _previous_v_charged_indexed{};
+	int32_t _previous_n_cells_legacy{};
+	int32_t _previous_n_cells_indexed{};
 	void updateParams() override;
 
 private:

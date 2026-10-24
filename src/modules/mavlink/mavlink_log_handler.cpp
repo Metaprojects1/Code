@@ -209,8 +209,33 @@ void MavlinkLogHandler::state_sending_data()
 {
 	static constexpr uint32_t MAVLINK_PACKET_SIZE = MAVLINK_NUM_NON_PAYLOAD_BYTES + MAVLINK_MSG_ID_LOG_DATA_LEN;
 	size_t bytes_sent = 0;
+	size_t max_bytes_to_send = MAX_BYTES_BURST;
 
-	while (_mavlink.get_free_tx_buf() > MAVLINK_PACKET_SIZE && bytes_sent < MAX_BYTES_BURST) {
+	if (_mavlink.get_free_tx_buf() <= MAVLINK_PACKET_SIZE) {
+		return;
+	}
+
+	// Pace log downloads only while RADIO_STATUS is available.
+	const int datarate = _mavlink.radio_status_available() ? _mavlink.get_data_rate() : 0;
+
+	if (datarate > 0) {
+		const hrt_abstime now = hrt_absolute_time();
+
+		if (_last_data_send != 0) {
+			const float rate = (float)datarate * _mavlink.bulk_bandwidth_share() * _mavlink.radio_status_mult();
+			const float credit = (float)(now - _last_data_send) * rate / 1e6f;
+
+			if (credit < (float)MAVLINK_PACKET_SIZE) {
+				return;
+			}
+		}
+
+		// Send one packet per call. Do not bank credit across long pauses.
+		_last_data_send = now;
+		max_bytes_to_send = MAVLINK_PACKET_SIZE;
+	}
+
+	while (_mavlink.get_free_tx_buf() > MAVLINK_PACKET_SIZE && bytes_sent < max_bytes_to_send) {
 
 		// Only seek if we need to
 		long int offset = _current_entry.offset - ftell(_current_entry.fp);
@@ -339,6 +364,7 @@ void MavlinkLogHandler::handle_log_request_data(const mavlink_message_t *msg)
 	// Set the offset of the current entry to the requested offset
 	_current_entry.offset = _entry_request.start_offset;
 	_file_send_finished = false;
+	_last_data_send = 0;
 	_state = LogHandlerState::SendingData;
 }
 

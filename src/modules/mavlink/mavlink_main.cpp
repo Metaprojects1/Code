@@ -1521,8 +1521,11 @@ Mavlink::update_rate_mult()
 		mavlink_ulog_streaming_rate_inv = 1.0f - _mavlink_ulog->current_data_rate();
 	}
 
+	/* Reserve the shared bulk-transfer budget so streams yield to paced downloads. */
+	const float bulk_rate = (active_bulk_transfers() > 0) ? (float)_datarate * kBulkBandwidthShare : 0.0f;
+
 	/* scale up and down as the link permits */
-	float bandwidth_mult = (float)(_datarate * mavlink_ulog_streaming_rate_inv - const_rate) / rate;
+	float bandwidth_mult = (float)(_datarate * mavlink_ulog_streaming_rate_inv - const_rate - bulk_rate) / rate;
 
 	/* Reduce rate while sending parameters in low bandwidth mode */
 	if (sending_parameters() && _mode == Mavlink::MAVLINK_MODE_LOW_BANDWIDTH) {
@@ -1570,6 +1573,27 @@ Mavlink::update_rate_mult()
 
 	/* ensure the rate multiplier never drops below 5% so that something is always sent */
 	_rate_mult = math::constrain(_rate_mult, 0.05f, 1.0f);
+}
+
+bool
+Mavlink::radio_status_critical() const
+{
+	LockGuard lg{_radio_status_mutex};
+	return _radio_status_critical;
+}
+
+bool
+Mavlink::radio_status_available() const
+{
+	LockGuard lg{_radio_status_mutex};
+	return _radio_status_available;
+}
+
+float
+Mavlink::radio_status_mult() const
+{
+	LockGuard lg{_radio_status_mutex};
+	return _radio_status_available ? _radio_status_mult : 1.0f;
 }
 
 void

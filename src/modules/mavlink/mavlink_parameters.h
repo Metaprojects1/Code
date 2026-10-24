@@ -91,6 +91,10 @@ public:
 		return hrt_absolute_time() < _last_param_sent + 2_s;
 	}
 
+	bool sending_all() const { return _send_all_index >= 0; }
+
+	static constexpr float kMaxBudgetMessages = 20.0f;
+
 private:
 	int		_send_all_index{-1};
 
@@ -102,6 +106,8 @@ protected:
 	/// send a single param if a PARAM_REQUEST_LIST is in progress
 	/// @return true if a parameter was sent
 	bool send_one();
+
+	bool take_send_budget();
 
 	/**
 	 * Handle any open param send transfer
@@ -217,4 +223,6 @@ protected:
 
 	bool _first_send{false};
 	hrt_abstime _last_param_sent_timestamp{0}; // time at which the last parameter was sent
+	hrt_abstime _budget_timestamp{0};
+	float _budget_bytes{0.0f};
 };

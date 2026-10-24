@@ -78,6 +78,12 @@ Battery::Battery(int index, ModuleParams *parent, const int sample_interval_us, 
 	snprintf(param_name, sizeof(param_name), "BAT%d_N_CELLS", _index);
 	_param_handles.n_cells = param_find(param_name);
 
+	if (_index == 1) {
+		_param_handles.v_empty_legacy = param_find("BAT_V_EMPTY");
+		_param_handles.v_charged_legacy = param_find("BAT_V_CHARGED");
+		_param_handles.n_cells_legacy = param_find("BAT_N_CELLS");
+	}
+
 	snprintf(param_name, sizeof(param_name), "BAT%d_CAPACITY", _index);
 	_param_handles.capacity = param_find(param_name);
 
@@ -411,6 +417,16 @@ float Battery::computeRemainingTime(float current_a)
 
 void Battery::updateParams()
 {
+	if (_index == 1) {
+		syncDeprecatedParameter(_param_handles.v_empty_legacy, _param_handles.v_empty,
+				       _previous_v_empty_legacy, _previous_v_empty_indexed);
+		syncDeprecatedParameter(_param_handles.v_charged_legacy, _param_handles.v_charged,
+				       _previous_v_charged_legacy, _previous_v_charged_indexed);
+		syncDeprecatedParameter(_param_handles.n_cells_legacy, _param_handles.n_cells,
+				       _previous_n_cells_legacy, _previous_n_cells_indexed);
+		_legacy_parameter_sync_initialized = true;
+	}
+
 	const int n_cells = _first_parameter_update ? 0 : _params.n_cells;
 	param_get(_param_handles.v_empty, &_params.v_empty);
 	param_get(_param_handles.v_charged, &_params.v_charged);

@@ -63,6 +63,8 @@ public:
 	/// Handle possible FTP message
 	void handle_message(const mavlink_message_t *msg);
 
+	bool burst_active() const { return _session_info.stream_download; }
+
 	/// @brief This is the payload which is in mavlink_file_transfer_protocol_t.payload.
 	/// This needs to be packed, because it's typecasted from mavlink_file_transfer_protocol_t.payload, which starts
 	/// at a 3 byte offset, causing an unaligned access to seq_number and offset
@@ -189,6 +191,7 @@ private:
 	char *_work_buffer2{nullptr};
 	static constexpr int _work_buffer2_len = 256;
 	hrt_abstime _last_work_buffer_access{0}; ///< timestamp when the buffers were last accessed
+	hrt_abstime _last_burst_send{0};
 
 	// prepend a root directory to each file/dir access to avoid enumerating the full FS tree (e.g. on Linux).
 	// Path traversal via ".." is rejected by _validatePath().

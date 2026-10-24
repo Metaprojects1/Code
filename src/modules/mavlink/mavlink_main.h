@@ -154,6 +154,9 @@ public:
 	bool sending_parameters() const { return _sending_parameters.load(); }
 	void set_sending_parameters(bool sending) { _sending_parameters.store(sending); }
 
+	bool sending_all_parameters() const { return _sending_all_parameters.load(); }
+	void set_sending_all_parameters(bool sending) { _sending_all_parameters.store(sending); }
+
 	int get_uart_fd() const { return _uart_fd; }
 
 	int get_system_id() const { return mavlink_system.sysid; }
@@ -506,7 +509,35 @@ public:
 
 	static hrt_abstime &get_first_start_time() { return _first_start_time; }
 
-	bool radio_status_critical() const { return _radio_status_critical; }
+	bool radio_status_critical() const;
+	bool radio_status_available() const;
+	float radio_status_mult() const;
+
+	bool ftp_burst_active() const { return _ftp_burst_active.load(); }
+	void set_ftp_burst_active(bool active) { _ftp_burst_active.store(active); }
+
+	bool log_download_active() const { return _log_download_active.load(); }
+	void set_log_download_active(bool active) { _log_download_active.store(active); }
+
+	static constexpr float kBulkBandwidthShare = 0.5f;
+
+	unsigned active_bulk_transfers() const
+	{
+		unsigned active = sending_all_parameters() ? 1 : 0;
+
+		if (radio_status_available()) {
+			active += ftp_burst_active() ? 1 : 0;
+			active += log_download_active() ? 1 : 0;
+		}
+
+		return active;
+	}
+
+	float bulk_bandwidth_share() const
+	{
+		const unsigned active = active_bulk_transfers();
+		return (active > 1) ? (kBulkBandwidthShare / (float)active) : kBulkBandwidthShare;
+	}
 
 	bool accept_unsigned(uint32_t message_id) { return _sign_control.accept_unsigned(message_id); }
 	void set_signing_key_dirty() { _signing_key_dirty.store(true); }
@@ -555,6 +586,9 @@ private:
 
 	px4::atomic_bool	_should_check_events{false};    /**< Events subscription: only one MAVLink instance should check */
 	px4::atomic_bool	_sending_parameters{false};     /**< True if parameters are currently sent out */
+	px4::atomic_bool	_sending_all_parameters{false}; /**< True while a full parameter dump is in progress */
+	px4::atomic_bool	_ftp_burst_active{false};       /**< True while an FTP burst is streaming */
+	px4::atomic_bool	_log_download_active{false};    /**< True while LOG_DATA is streaming */
 
 	unsigned		_main_loop_delay{1000};	/**< mainloop delay, depends on data rate */
 
@@ -656,7 +690,7 @@ private:
 	pthread_mutex_t		_message_buffer_mutex{};
 	VariableLengthRingbuffer _message_buffer{};
 
-	pthread_mutex_t         _radio_status_mutex {};
+	mutable pthread_mutex_t _radio_status_mutex {};
 
 	DEFINE_PARAMETERS(
 		(ParamInt<px4::params::MAV_SYS_ID>) _param_mav_sys_id,

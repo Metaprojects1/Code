@@ -627,6 +627,7 @@ MavlinkFTP::_workBurst(PayloadHeader *payload, uint8_t target_system_id, uint8_t
 
 	PX4_DEBUG("FTP: burst offset:%" PRIu32, payload->offset);
 	// Setup for streaming sends
+	_last_burst_send = 0;
 	_session_info.stream_download = true;
 	_session_info.stream_offset = payload->offset;
 	_session_info.stream_chunk_transmitted = 0;
@@ -1081,6 +1082,27 @@ void MavlinkFTP::send()
 		return;
 	}
 
+	// Pace bulk downloads only while RADIO_STATUS is available; otherwise keep
+	// the existing transfer rate.
+	const int datarate = _mavlink.radio_status_available() ? _mavlink.get_data_rate() : 0;
+
+	if (datarate > 0) {
+		const hrt_abstime now = hrt_absolute_time();
+
+		if (_last_burst_send != 0) {
+			const float rate = (float)datarate * _mavlink.bulk_bandwidth_share() * _mavlink.radio_status_mult();
+			const float credit = (float)(now - _last_burst_send) * rate / 1e6f;
+
+			if (credit < (float)get_size()) {
+				return;
+			}
+		}
+
+		// Send one packet per call. Do not bank credit across long pauses.
+		_last_burst_send = now;
+		max_bytes_to_send = get_size();
+	}
+
 	// Send stream packets until buffer is full
 
 	bool more_data;
@@ -1165,6 +1187,9 @@ void MavlinkFTP::send()
 		ftp_msg.target_network = 0;
 		ftp_msg.target_component = _session_info.stream_target_component_id;
 		_reply(&ftp_msg);
+
+		// A burst is activity too; keep a slow transfer's FTP session alive.
+		_last_work_buffer_access = hrt_absolute_time();
 	} while (more_data);
 }
 
