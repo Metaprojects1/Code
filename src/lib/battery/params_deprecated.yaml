@@ -1,0 +1,50 @@
+module_name: battery
+parameters:
+    - group: Battery Calibration
+      definitions:
+        BAT_V_EMPTY:
+            description:
+                short: Empty cell voltage (deprecated legacy name)
+                long: Use BAT1_V_EMPTY. This parameter is retained for compatibility with older ground stations.
+            type: float
+            unit: V
+            decimal: 2
+            increment: 0.01
+            reboot_required: true
+            default: 3.6
+
+        BAT_V_CHARGED:
+            description:
+                short: Full cell voltage (deprecated legacy name)
+                long: Use BAT1_V_CHARGED. This parameter is retained for compatibility with older ground stations.
+            type: float
+            unit: V
+            decimal: 2
+            increment: 0.01
+            reboot_required: true
+            default: 4.05
+
+        BAT_N_CELLS:
+            description:
+                short: Number of battery cells (deprecated legacy name)
+                long: Use BAT1_N_CELLS. This parameter is retained for compatibility with older ground stations.
+            type: enum
+            values:
+                0: Unknown
+                1: 1S Battery
+                2: 2S Battery
+                3: 3S Battery
+                4: 4S Battery
+                5: 5S Battery
+                6: 6S Battery
+                7: 7S Battery
+                8: 8S Battery
+                9: 9S Battery
+                10: 10S Battery
+                11: 11S Battery
+                12: 12S Battery
+                13: 13S Battery
+                14: 14S Battery
+                15: 15S Battery
+                16: 16S Battery
+            default: 0

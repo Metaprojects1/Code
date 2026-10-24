@@ -31,7 +31,10 @@
 #
 ############################################################################
 
-px4_add_library(battery battery.cpp battery_params_deprecated.c)
+px4_add_library(battery battery.cpp)
 
 # TODO: Add an option in px4_add_library function to add module config file
-set_property(GLOBAL APPEND PROPERTY PX4_MODULE_CONFIG_FILES ${CMAKE_CURRENT_SOURCE_DIR}/module.yaml)
+set_property(GLOBAL APPEND PROPERTY PX4_MODULE_CONFIG_FILES
+	${CMAKE_CURRENT_SOURCE_DIR}/module.yaml
+	${CMAKE_CURRENT_SOURCE_DIR}/params_deprecated.yaml
+)
