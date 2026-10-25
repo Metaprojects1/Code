@@ -461,6 +461,27 @@ MavlinkParametersManager::send()
 		param_find("BAT1_V_LOAD_DROP");	// compatibility placeholder, not used by the battery estimator
 		param_find("BAT2_V_LOAD_DROP");	// expose even when battery 2 monitoring is disabled
 		param_find("COM_OBS_AVOID");	// compatibility placeholder; does not enable obstacle avoidance
+
+		// Legacy RC dead zones: expose every channel for older QGroundControl versions; no runtime effect.
+		param_find("RC1_DZ");
+		param_find("RC2_DZ");
+		param_find("RC3_DZ");
+		param_find("RC4_DZ");
+		param_find("RC5_DZ");
+		param_find("RC6_DZ");
+		param_find("RC7_DZ");
+		param_find("RC8_DZ");
+		param_find("RC9_DZ");
+		param_find("RC10_DZ");
+		param_find("RC11_DZ");
+		param_find("RC12_DZ");
+		param_find("RC13_DZ");
+		param_find("RC14_DZ");
+		param_find("RC15_DZ");
+		param_find("RC16_DZ");
+		param_find("RC17_DZ");
+		param_find("RC18_DZ");
+
 		param_find("CAL_ACC0_ID");
 		param_find("CAL_GYRO0_ID");
 		param_find("CAL_MAG0_ID");

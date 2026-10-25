@@ -1,5 +1,22 @@
 module_name: rc_update
 parameters:
+- group: Radio Calibration
+  definitions:
+    RC${i}_DZ:
+      description:
+        short: Legacy RC channel ${i} dead zone (unused)
+        long: |
+          Compatibility placeholder for older ground stations. The value is
+          stored and reported but has no effect on RC channel normalization,
+          switch selection or stick deadzone handling.
+      type: float
+      unit: us
+      min: 0.0
+      max: 100.0
+      num_instances: 18
+      instance_start: 1
+      default: [10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
 - group: Radio Switches
   definitions:
     RC_MAP_MODE_SW:
