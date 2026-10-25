@@ -1,7 +1,7 @@
 # CRA product variant for the CubeOrange+.
 #
 # This variant retains the board ADC used for POWER1 battery and system-power
-# monitoring. CAN and the external ADS1115 driver are disabled here; I2C2 is
-# disabled in the CubeOrange+ NuttX configuration.
+# monitoring. CAN is disabled in the inherited default configuration, and the
+# external ADS1115 driver is disabled here. I2C1, I2C2 and I2C4 remain enabled.
 CONFIG_DRIVERS_ADC_ADS1115=n
 CONFIG_DRIVERS_UAVCAN=n
