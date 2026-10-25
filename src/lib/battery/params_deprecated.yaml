@@ -2,6 +2,24 @@ module_name: battery
 parameters:
     - group: Battery Calibration
       definitions:
+        BAT${i}_V_LOAD_DROP:
+            description:
+                short: Legacy voltage drop setting (unused)
+                long: |
+                    Compatibility placeholder for older ground stations. The value is
+                    stored and reported but has no effect on battery state-of-charge
+                    estimation or voltage compensation. Load compensation uses measured
+                    current and estimated internal resistance, or BAT${i}_R_INTERNAL.
+            type: float
+            unit: V
+            min: 0.07
+            max: 0.5
+            decimal: 2
+            increment: 0.01
+            num_instances: 2
+            instance_start: 1
+            default: [0.1, 0.1]
+
         BAT_V_EMPTY:
             description:
                 short: Empty cell voltage (deprecated legacy name)
