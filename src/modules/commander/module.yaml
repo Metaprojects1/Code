@@ -2,6 +2,16 @@ module_name: Commander
 parameters:
     - group: Commander
       definitions:
+        COM_OBS_AVOID:
+            description:
+                short: Legacy obstacle avoidance switch (unused)
+                long: |
+                    Compatibility placeholder for older ground stations. The value is
+                    stored and reported but has no effect. Setting it to 1 does not
+                    enable obstacle avoidance, collision prevention or path planning.
+            type: boolean
+            default: 0
+
         COM_MODE${i}_HASH:
             description:
                 short: External mode identifier ${i}

@@ -460,6 +460,7 @@ MavlinkParametersManager::send()
 		param_find("BAT_V_EMPTY");	// deprecated, retained for older QGroundControl versions
 		param_find("BAT1_V_LOAD_DROP");	// compatibility placeholder, not used by the battery estimator
 		param_find("BAT2_V_LOAD_DROP");	// expose even when battery 2 monitoring is disabled
+		param_find("COM_OBS_AVOID");	// compatibility placeholder; does not enable obstacle avoidance
 		param_find("CAL_ACC0_ID");
 		param_find("CAL_GYRO0_ID");
 		param_find("CAL_MAG0_ID");
